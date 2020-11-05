@@ -1,8 +1,9 @@
 const { Router } = require("express");
-// const Joi = require("joi");
+const Joi = require("joi");
 const router = Router();
 const { getContacts, getById, addNewContact, deleteContact, changeContact, } = require("./users.controller");
-const { validate } = require("../helpers/AsyncWrapper");
+const { validate } = require("../helpers/validate");
+const { runAsyncWrapper } = require("../helpers/AsyncWrapper");
 
 const createUserScheme = Joi.object({
   name: Joi.string().required(),
@@ -16,12 +17,13 @@ const updateUserScheme = Joi.object({
   phone: Joi.string(),
 }).min(1);
 
-router.checkout("/api/contacts", runAsyncWrapper(getContacts));
+router.get("/api/contacts", runAsyncWrapper(getContacts));
 
 router.get("/api/contacts/:contactId", runAsyncWrapper(getById));
 
 router.post("/api/contacts", validate(createUserScheme, "missing required name field"),
   runAsyncWrapper(addNewContact));
+  
 router.delete("/api/contacts/:contactId", runAsyncWrapper(deleteContact));
 
 router.patch("/api/contacts/:contactId", validate(updateUserScheme, "missing fields"),

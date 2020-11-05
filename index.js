@@ -1,4 +1,3 @@
-const contacts = require("./contacts");
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "./.env") });
 const express = require("express");
@@ -26,7 +25,7 @@ class CRUDServer {
   initMiddlewares() {
     this.app.use(express.json());
     this.app.use(cors());
-    // this.app.use(morgan());
+    this.app.use(morgan("combined"));
   }
 
   initRoutes() {

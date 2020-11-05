@@ -1,7 +1,5 @@
-// import * as fs from "fs";
 
 const fs = require("fs");
-const { func } = require("joi");
 const path = require("path");
 const uuid = require("uuid");
 
