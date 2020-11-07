@@ -1,7 +1,7 @@
-// import * as fs from "fs";
 
 const fs = require("fs");
 const path = require("path");
+const uuid = require("uuid");
 
 const { promises: fsPromises } = fs;
 
@@ -13,34 +13,40 @@ async function listContacts() {
 }
 
 async function getContactById(contactId) {
-  try {
-    const list = await listContacts();
-    return list.filter((item) => item.id === contactId);
-  } catch (error) {
-    console.log(error);
-  }
+  
+  const list = await listContacts();
+  return list.filter((item) => item.id === contactId);
+  
 }
 
 async function removeContact(contactId) {
-  try {
+  
     const list = await listContacts();
-    const result = list.filter((ite,) => item.id !== contactId);
+    const result = list.filter((item) => item.id !== contactId);
     await fsPromises.writeFile(contactsPath, JSON.stringify(result));
-  } catch (error) {
-    console.log(error);
-  }
+  
 }
 
 async function addContact(name, email, phone) {
-  const id = JSON.parse(JSON.stringify(Date.now()).slice(9, 11));
-  try {
-    const list = await listContacts();
-    await fsPromises.writeFile(contactsPath, JSON.stringify([...list, { id, name, email, phone }]));
+  const id = uuid.v4();
+  const newContact = { id, name, email, phone };
+  const list = await listContacts();
+  await fsPromises.writeFile(contactsPath, JSON.stringify([...list, newContact]));
     
-  } catch (error) {
-    log(error);
-  }
+  return newContact;
 
+}
+
+async function updateContact(id, paramsToUpdate) {
+  const list = await listContacts();
+  const contactIndex = list.findIndex((user) => String(user.id) === id);
+  if (contactIndex === -1) {
+    return null;
+  }
+  list[contactIndex] = { ...list[contactIndex], ...paramsToUpdate };
+  console.log(list[contactIndex]);
+  await fsPromises.writeFile(contactsPath, JSON.stringify([...list]));
+  return list[contactIndex];
 }
 
 module.exports = {
@@ -48,4 +54,5 @@ module.exports = {
   getContactById,
   removeContact,
   addContact,
+  updateContact,
 };
