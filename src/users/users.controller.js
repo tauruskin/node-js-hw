@@ -1,26 +1,29 @@
-const contacts = require("../../contacts");
+const userModel = require("./user.model");
 
 exports.getContacts = async (req, res, next) => {
-  res.status(200).send(await contacts.listContacts());
+  const listContacts = await userModel.find();
+  res.status(200).json(listContacts);
 };
 
 exports.getById = async (req, res, next) => {
-  const contact = await contacts.getContactById(Number(req.params.contactId));
-  if (contact.length === 0) {
+  const contactId = req.params.contactId;
+  const contact = await userModel.findById(contactId);
+  if (!contact) {
     return res.status(404).send("Not found");
   }
-  res.status(200).send(await contact);
+  res.status(200).send(contact);
 };
 
 exports.addNewContact = async (req, res, next) => {
-  const { name, email, phone } = req.body;
-  res.status(201).send(await contacts.addContact(name, email, phone));
+  const newContact = await userModel.create(req.body);
+  res.status(201).send(newContact);
 };
 
-exports.deleteContact = async = async (req, res, next) => {
-  const contact = await contacts.getContactById(Number(req.param.contactId));
-  if (contact.length > 0) {
-    await contacts.removeContact(Number(req.params.contactId));
+exports.deleteContact = async (req, res, next) => {
+  const contactId = req.params.contactId;
+  const deletedContact = await userModel.findByIdAndDelete(contactId);
+  console.log(deletedContact);
+  if (deletedContact) {
     res.status(200).send("contact deleted");
   } else {
     res.status(404).send("Not found");
@@ -28,10 +31,11 @@ exports.deleteContact = async = async (req, res, next) => {
 };
 
 exports.changeContact = async (req, res, next) => {
-  const changedContact = await contacts.updateContact(req.params.contactId, req.body);
+  const contactId = req.params.contactId;
+  const changedContact = await userModel.findContactByIdAndUpdate(contactId, req.body);
   if (changedContact) {
     res.status(200).send(changedContact);
   } else {
-    res.status(404).send("not found");
+    res.status(404).send("Not found");
   }
 };

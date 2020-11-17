@@ -17,16 +17,16 @@ const updateUserScheme = Joi.object({
   phone: Joi.string(),
 }).min(1);
 
-router.get("/api/contacts", runAsyncWrapper(getContacts));
+router.get("/", runAsyncWrapper(getContacts));
 
-router.get("/api/contacts/:contactId", runAsyncWrapper(getById));
+router.get("/:contactId", runAsyncWrapper(getById));
 
-router.post("/api/contacts", validate(createUserScheme, "missing required name field"),
+router.post("/", validate(createUserScheme, "missing required name field"),
   runAsyncWrapper(addNewContact));
   
-router.delete("/api/contacts/:contactId", runAsyncWrapper(deleteContact));
+router.delete("/:contactId", runAsyncWrapper(deleteContact));
 
-router.patch("/api/contacts/:contactId", validate(updateUserScheme, "missing fields"),
+router.patch("/:contactId", validate(updateUserScheme, "missing fields"),
   runAsyncWrapper(changeContact));
 
 exports.userRouter = router;
