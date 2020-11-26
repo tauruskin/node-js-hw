@@ -2,9 +2,10 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const express = require("express");
 const cors = require("cors");
-const morgan = require("morgan")
+const morgan = require("morgan");
 const { userRouter } = require("./users/users.router");
 const mongoose = require("mongoose");
+const { contactRouter } = require("./contacts/contact.router");
 
 module.exports = class CRUDServer {
   constructor() {
@@ -30,7 +31,9 @@ module.exports = class CRUDServer {
     this.app.use(morgan("combined"));
   }
   initRoutes() {
-    this.app.use("/src/contacts", userRouter);
+    this.app.use("/src/contacts", contactRouter);
+    this.app.use("/auth", userRouter);
+    this.app.use("/users", userRouter);
   }
   async initDataBase() {
     try {
