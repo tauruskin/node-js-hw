@@ -2,6 +2,8 @@ const userModel = require("./user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { UnauthorisedError } = require("../helpers/errors.constructor");
+const { generateAvatar } = require("../helpers/avatarCreator");
+
 
 exports.addNewUser = async (req, res, next) => {
   const { email, password } = req.body;
@@ -13,7 +15,14 @@ exports.addNewUser = async (req, res, next) => {
   if (existUser) {
     return res.status(409).send("Email in use");
   }
-  const newUser = await userModel.create({ email, password: passwordHash });
+  const avatarName = await generateAvatar();
+  const avatarPath = `http://localhost:${process.env.PORT}/images/${avatarName}`;
+
+  const newUser = await userModel.create({
+    email,
+    password: passwordHash,
+    avatarURL: avatarPath,
+  });
   res.status(201).send({
     user: {
       email: newUser.email,
@@ -95,4 +104,20 @@ exports.updateSubscription = async (req, res, next) => {
     subscription: "pro",
   });
   res.status(200).send("Subscription updated");
+};
+
+exports.updateUserInfo = async (req, res, next) => {
+  const { user } = req;
+  const { file } = req;
+
+  const newImagePath = `http://localhost:3000/images/${file.filename}`;
+  const updatedImage = await userModel.findByIdAndUpdate(user._id,
+    {
+      avatarURL: newImagePath,
+    },
+    { new: true }
+  );
+  res.status(200).send({
+    avatarURL: updatedImage.avatarURL,
+  });
 };
