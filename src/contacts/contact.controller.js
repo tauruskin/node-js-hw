@@ -1,6 +1,6 @@
 const contactModel = require("./contact.model");
 
-exports.getContacts = async (re, res, next) => {
+exports.getContacts = async (req, res, next) => {
   if (req.query.sub) {
     const filteredContacts = await contactModel.find({
       subscription: req.query.sub,
