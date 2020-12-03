@@ -27,6 +27,7 @@ module.exports = class CRUDServer {
 
   initMiddlewares() {
     this.app.use(express.json());
+    this.app.use(express.static("public"));
     this.app.use(cors());
     this.app.use(morgan("combined"));
   }
@@ -35,11 +36,13 @@ module.exports = class CRUDServer {
     this.app.use("/auth", userRouter);
     this.app.use("/users", userRouter);
   }
+
   async initDataBase() {
     try {
       await mongoose.connect(process.env.MONGODB_URL, {
         userNewUrlParser: true,
         useUnifiedTopology: true,
+        useCreateIndex: true,
       });
     } catch (error) {
       console.log(error);
