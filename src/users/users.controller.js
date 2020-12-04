@@ -3,26 +3,47 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { UnauthorisedError } = require("../helpers/errors.constructor");
 const { generateAvatar } = require("../helpers/avatarCreator");
+const uuid = require("uuid");
+const sgMail = require("@sendgrid/mail");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 
 exports.addNewUser = async (req, res, next) => {
   const { email, password } = req.body;
   const passwordHash = await bcrypt.hash(
-    password, Number(process.env.BCRYPT_SALT)
+    password,
+    Number(process.env.BCRYPT_SALT)
   );
   const [existUser] = await userModel.findUserByEmail(email);
 
   if (existUser) {
     return res.status(409).send("Email in use");
   }
+
   const avatarName = await generateAvatar();
   const avatarPath = `http://localhost:${process.env.PORT}/images/${avatarName}`;
+  const verificationToken = uuid.v4();
 
   const newUser = await userModel.create({
     email,
     password: passwordHash,
     avatarURL: avatarPath,
+    verificationToken,
   });
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const msg = {
+    to: email,
+    from: process.env.SENDGRID_SENDER,
+    subject: "Home-work node.js",
+    text: "Verification test",
+    html: `<p>To verify your account, please follow this 
+    <a href="http://localhost:3000/auth/verify/${verificationToken}">link</a></p>`,
+  };
+
+  sgMail.send(msg);
+
   res.status(201).send({
     user: {
       email: newUser.email,
@@ -66,7 +87,7 @@ exports.logout = async (req, res, next) => {
 
 exports.authorise = async (req, res, next) => {
   // 1. витягнути токен користувача з заголовка Authorisation
-  const authorisationHeader = req.get("Authorisation");
+  const authorisationHeader = req.get("Authorization");
   const token = authorisationHeader.replace("Bearer ", "");
 
   // 2. витягнути id користувача з пейлоада або вернути користувачу
@@ -83,7 +104,7 @@ exports.authorise = async (req, res, next) => {
   // userModel - модель користувача в нашій системі
   const user = await userModel.findById(userId);
   if (!user || user.token !== token) {
-    throw new UnauthorisedError("Not authorised");
+    throw new UnauthorisedError("Not authorized");
   }
 
   // 4. Якщо все пройшло успішно - передати запис користувача і токен в req
@@ -120,4 +141,18 @@ exports.updateUserInfo = async (req, res, next) => {
   res.status(200).send({
     avatarURL: updatedImage.avatarURL,
   });
+};
+
+exports.checkVerification = async (req, res, next) => {
+  const verificationToken = req.params.verificationToken;
+
+  const verifiedUser = await userModel.findOneAndUpdate(
+    { verificationToken },
+    { verificationToken: null }
+  );
+  if (verifiedUser) {
+    return res.status(200).send();
+  } else {
+    return res.status(404).send("User is not found");
+  }
 };

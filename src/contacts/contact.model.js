@@ -11,7 +11,13 @@ const contactScheme = new Schema({
 contactScheme.statics.findContactByIdAndUpdate = findContactByIdAndUpdate;
 
 async function findContactByIdAndUpdate(contactId, updateParams) {
-  return this.findByIdAndUpdate(contactId, { $set: updateParams }, { new: true, });
+  return this.findByIdAndUpdate(contactId,
+    {
+      $set: updateParams
+    },
+    {
+      new: true,
+    });
 }
 
 contactScheme.plugin(mongoosePaginate);
