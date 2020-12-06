@@ -10,7 +10,9 @@ const userScheme = new Schema({
     enum: ["free", "pro", "premium"],
     default: "free",
   },
-  token: {type: String},
+  token: { type: String },
+  verificationToken: { type: String, required: false },
+  
 });
 
 async function findUserByEmail(email) {
